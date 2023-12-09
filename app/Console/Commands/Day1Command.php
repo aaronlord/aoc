@@ -20,7 +20,7 @@ class Day1Command extends Command
             ->reject(fn (string $line): bool => empty($line))
             ->reduce($this->sumCalibrationValues(...), 0);
 
-        $this->line($sum); // 54845
+        $this->line($sum);
     }
 
     private function sumCalibrationValues(int $carry, string $line): int
