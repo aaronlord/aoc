@@ -18,40 +18,55 @@ class Day1Command extends Command
 
         $sum = collect($lines)
             ->reject(fn (string $line): bool => empty($line))
-            ->reduce($this->reduce(...), 0);
+            ->reduce($this->sumCalibrationValues(...), 0);
 
-        $this->line($sum);
+        $this->line($sum); // 54845
     }
 
-    private function reduce(int $carry, string $line): int
+    private function sumCalibrationValues(int $carry, string $line): int
     {
-        $line = str_split($line);
-
         return $carry + $this->calibrationValue($line);
     }
 
-    /**
-     * @param array<string> $line
-     */
-    private function calibrationValue(array $line): int
+    private function calibrationValue(string $line): int
     {
-        return ($this->firstDigit($line) * 10) + $this->lastDigit($line);
+        $tens = null;
+        $ones = null;
+
+        for ($i = 0; $i < strlen($line); $i++) {
+            if (! $tens && $digit = $this->numberize(substr($line, $i))) {
+                $tens = $digit;
+            }
+
+            if (! $ones && $digit = $this->numberize(substr($line, abs($i + 1) * -1))) {
+                $ones = $digit;
+            }
+
+            if ($tens && $ones) {
+                break;
+            }
+        }
+
+        return ($tens * 10) + $ones;
     }
 
-    /**
-     * @param array<string> $line
-     */
-    private function firstDigit(array $line): int
+    private function numberize(string $substr): ?int
     {
-        return collect($line)
-            ->first(fn ($s) => is_numeric($s));
-    }
+        if (is_numeric($substr[0])) {
+            return (int) $substr[0];
+        }
 
-    /**
-     * @param array<string> $line
-     */
-    private function lastDigit(array $line): int
-    {
-        return $this->firstDigit(array_reverse($line));
+        return match (true) {
+            str_starts_with($substr, 'one') => 1,
+            str_starts_with($substr, 'two') => 2,
+            str_starts_with($substr, 'three') => 3,
+            str_starts_with($substr, 'four') => 4,
+            str_starts_with($substr, 'five') => 5,
+            str_starts_with($substr, 'six') => 6,
+            str_starts_with($substr, 'seven') => 7,
+            str_starts_with($substr, 'eight') => 8,
+            str_starts_with($substr, 'nine') => 9,
+            default => null,
+        };
     }
 }
