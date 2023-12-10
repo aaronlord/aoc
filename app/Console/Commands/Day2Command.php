@@ -21,7 +21,6 @@ class Day2Command extends Command
         $sum = collect($lines)
             ->reject(fn (string $line): bool => empty($line))
             ->map(fn (string $line): Game => Game::fromLine($line))
-            ->filter(fn (Game $game): bool => $game->isPossible())
             ->reduce($this->reduce(...), 0);
 
         $this->line($sum);
@@ -29,7 +28,7 @@ class Day2Command extends Command
 
     private function reduce(int $carry, Game $game): int
     {
-        return $carry + $game->id;
+        return $carry + $game->powerOfMinimumSet();
     }
 }
 
@@ -49,9 +48,11 @@ class Game
         );
     }
 
-    public function isPossible(): bool
+    public function powerOfMinimumSet(): int
     {
-        return $this->handfulls->every(fn (Handfull $handfull): bool => $handfull->isPossible());
+        $set = $this->handfulls->minimumSet();
+
+        return $set->red * $set->green * $set->blue;
     }
 }
 
@@ -64,9 +65,18 @@ class Handfulls extends Collection
             explode('; ', $line)
         ));
     }
+
+    public function minimumSet(): Set
+    {
+        return new Set(
+            red: $this->max(fn (Handfull $handfull): int => $handfull->red),
+            green: $this->max(fn (Handfull $handfull): int => $handfull->green),
+            blue: $this->max(fn (Handfull $handfull): int => $handfull->blue),
+        );
+    }
 }
 
-class Handfull
+class Set
 {
     public function __construct(
         public readonly int $red,
@@ -74,7 +84,10 @@ class Handfull
         public readonly int $blue,
     ) {
     }
+}
 
+class Handfull extends Set
+{
     public static function fromLine(string $line): self
     {
         $dice = collect(explode(', ', $line))
@@ -86,22 +99,5 @@ class Handfull
             green: $dice->get('green', 0),
             blue: $dice->get('blue', 0),
         );
-    }
-
-    public function isPossible(): bool
-    {
-        if ($this->red > 12) {
-            return false;
-        }
-
-        if ($this->green > 13) {
-            return false;
-        }
-
-        if ($this->blue > 14) {
-            return false;
-        }
-
-        return true;
     }
 }
