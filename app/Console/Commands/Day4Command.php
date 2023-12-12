@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Day4\Card;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\Filesystem;
-use App\Console\Commands\Day4\Card;
+use Illuminate\Support\Collection;
 
 class Day4Command extends Command
 {
@@ -17,12 +18,22 @@ class Day4Command extends Command
         $contents = $fs->get('day4.txt');
         $lines = explode("\n", $contents);
 
-        $sum = collect($lines)
+        $cards = collect($lines)
             ->reject(fn (string $line): bool => empty($line))
-            ->map(fn (string $line): Card => Card::fromString($line))
-            ->reduce(fn (int $carry, Card $card): int => $carry + $card->calculatePoints(), 0);
+            ->map(fn (string $line): Card => Card::fromString($line));
+
+        $sum = $cards->count() + $cards->reduce(fn (int $carry, Card $card, int $i): int => $this->rec($carry, $card, $i, $cards), 0);
 
         $this->line($sum);
+    }
+
+    public function rec(int $carry, Card $card, int $i, Collection $cards): int
+    {
+        $copies = $cards->slice($i + 1, $card->matchingNumbers());
+
+        return $carry
+            + $copies->count()
+            + $copies->reduce(fn (int $carry, Card $card, $i): int => $this->rec($carry, $card, $i, $cards), 0);
     }
 }
 
@@ -34,9 +45,9 @@ use Illuminate\Support\Str;
 class Card
 {
     public function __construct(
-        private int $id,
-        private Numbers $mine,
-        private Numbers $winning,
+        public int $id,
+        public Numbers $mine,
+        public Numbers $winning,
     ) {
     }
 
@@ -51,14 +62,11 @@ class Card
         );
     }
 
-    public function calculatePoints(): int
+    public function matchingNumbers(): int
     {
-        $n = $this->mine
+        return $this->mine
             ->intersect($this->winning)
-            ->count() - 1;
-
-        // 1 x 2n
-        return 1 * (2 ** $n);
+            ->count();
     }
 }
 
