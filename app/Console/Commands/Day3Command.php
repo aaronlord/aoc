@@ -17,13 +17,20 @@ class Day3Command extends Command
         $contents = $fs->get('day3.txt');
         $lines = explode("\n", $contents);
 
-        $sum = (new Schematic($lines))
+        $schematic = (new Schematic($lines))
             ->reject(fn (string $line): bool => empty($line))
-            ->map($this->toLine(...))
-            ->pipe(fn (Schematic $schematic): int => $schematic->reduce(
-                fn (int $carry, Line $line): int => $carry + $this->sum($schematic, $line),
+            ->map($this->toLine(...));
+
+        $numbers = $schematic->map($this->numbers(...))
+            ->pipeInto(Numbers::class);
+
+        $sum = $schematic->reduce(
+            fn (int $carry, Line $line): int => $carry + $line->reduce(
+                fn (int $carry, Column $column): int => $carry + $this->gearRatio($numbers, $column),
                 0
-            ));
+            ),
+            0
+        );
 
         $this->line($sum);
     }
@@ -35,9 +42,9 @@ class Day3Command extends Command
         return $line->map(fn ($value, $x) => new Column($value, new Coordinate($x, $y)));
     }
 
-    private function sum(Schematic $schematic, Line $line): int
+    private function numbers(Line $line): Numbers
     {
-        $numbers = collect();
+        $numbers = new Numbers();
         $number = null;
 
         foreach ($line as $column) {
@@ -50,43 +57,37 @@ class Day3Command extends Command
             }
 
             if ($number) {
-                $number = $number->build();
-
-                if ($number->isAdjacentToSymbol($schematic)) {
-                    $numbers->add($number);
-                }
+                $numbers->add($number->build());
             }
 
             $number = null;
         }
 
         if ($number) {
-            $number = $number->build();
-
-            if ($number->isAdjacentToSymbol($schematic)) {
-                $numbers->add($number);
-            }
+            $numbers->add($number->build());
         }
 
-        return $numbers->sum('value');
+        return $numbers;
+    }
+
+    private function gearRatio(Numbers $numbers, Column $column): int
+    {
+        if (! $column->isGear()) {
+            return 0;
+        }
+
+        $gears = $numbers->adjacentTo($column->coordinate);
+
+        if ($gears->count() !== 2) {
+            return 0;
+        }
+
+        return $gears[0]->value * $gears[1]->value;
     }
 }
 
 class Schematic extends Collection
 {
-    public function adjacentColumns(Coordinate $coordinate): Collection
-    {
-        return collect([
-            $this->get($coordinate->y - 1)?->get($coordinate->x - 1),
-            $this->get($coordinate->y - 1)?->get($coordinate->x),
-            $this->get($coordinate->y - 1)?->get($coordinate->x + 1),
-            $this->get($coordinate->y)?->get($coordinate->x - 1),
-            $this->get($coordinate->y)?->get($coordinate->x + 1),
-            $this->get($coordinate->y + 1)?->get($coordinate->x - 1),
-            $this->get($coordinate->y + 1)?->get($coordinate->x),
-            $this->get($coordinate->y + 1)?->get($coordinate->x + 1),
-        ])->filter();
-    }
 }
 
 class Line extends Collection
@@ -101,9 +102,9 @@ class Column
     ) {
     }
 
-    public function isPeriod(): bool
+    public function isGear(): bool
     {
-        return $this->value === '.';
+        return $this->value === '*';
     }
 
     public function isNumber(): bool
@@ -133,6 +134,18 @@ class NumberBuilder
     }
 }
 
+class Numbers extends Collection
+{
+    public function adjacentTo(Coordinate $coordinate): Collection
+    {
+        return $this->slice($coordinate->y - 1, 3)
+            ->flatten()
+            ->filter(fn (Number $number): bool => $number->adjacentTo($coordinate))
+            ->values();
+    }
+
+}
+
 class Number
 {
     public function __construct(
@@ -141,21 +154,11 @@ class Number
     ) {
     }
 
-    public function isAdjacentToSymbol(Schematic $schematic): bool
+    public function adjacentTo(Coordinate $coordinate): bool
     {
-        foreach ($this->coordinates as $coordinate) {
-            $columns = $schematic->adjacentColumns($coordinate);
-
-            foreach ($columns as $column) {
-                if ($column->isPeriod() || $column->isNumber()) {
-                    continue;
-                }
-
-                return true;
-            }
-        }
-
-        return false;
+        return collect($this->coordinates)
+            ->filter(fn (Coordinate $c) => $c->adjacentTo($coordinate))
+            ->isNotEmpty();
     }
 }
 
@@ -165,5 +168,11 @@ class Coordinate
         public readonly int $x,
         public readonly int $y,
     ) {
+    }
+
+    public function adjacentTo(Coordinate $coordinate): bool
+    {
+        return abs($this->x - $coordinate->x) <= 1
+            && abs($this->y - $coordinate->y) <= 1;
     }
 }
