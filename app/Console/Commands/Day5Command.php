@@ -30,7 +30,7 @@ class Day5Command extends Command
     }
 
     /**
-     * @param Collection<Map> $maps
+     * @param  Collection<Map>  $maps
      */
     public function min(Map $current, Collection $maps): int
     {
@@ -97,7 +97,7 @@ class Seeds extends Map
 class Seed extends Range
 {
     /**
-     * @param array<int> $array
+     * @param  array<int>  $array
      */
     public static function fromArray(array $array): self
     {
@@ -111,7 +111,7 @@ class Seed extends Range
 class Map
 {
     /**
-     * @param array<Range> $ranges
+     * @param  array<Range>  $ranges
      */
     public function __construct(
         public readonly array $ranges = []
@@ -124,7 +124,7 @@ class Map
 
         $ranges = array_map(fn (string $line) => Range::fromString($line), $lines);
 
-        usort($ranges, function($a, $b) {
+        usort($ranges, function ($a, $b) {
             return $a->sourceStart <=> $b->sourceStart;
         });
 
@@ -136,7 +136,7 @@ class Map
                     sourceEnd: $ranges[0]->sourceStart - 1,
                     destinationStart: 0,
                     destinationEnd: $ranges[0]->sourceStart - 1,
-                )
+                ),
             ], $ranges);
         }
 

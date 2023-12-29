@@ -143,7 +143,6 @@ class Numbers extends Collection
             ->filter(fn (Number $number): bool => $number->adjacentTo($coordinate))
             ->values();
     }
-
 }
 
 class Number
