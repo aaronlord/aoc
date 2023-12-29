@@ -59,12 +59,16 @@ class Day6Command extends Command
         return $count;
     }
 
+    /**
+     * @return Collection<string>
+     */
     private function values(string $line): Collection
     {
-        return Str::of($line)
+        $string = Str::of($line)
             ->after(':')
-            ->explode(' ')
-            ->filter()
-            ->values();
+            ->replace(' ', '')
+            ->toString();
+
+        return collect([$string]);
     }
 }
