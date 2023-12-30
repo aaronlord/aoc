@@ -40,11 +40,17 @@ use LogicException;
 class Hand
 {
     const FIVE_OF_A_KIND = 6;
+
     const FOUR_OF_A_KIND = 5;
+
     const FULL_HOUSE = 4;
+
     const THREE_OF_A_KIND = 3;
+
     const TWO_PAIR = 2;
+
     const ONE_PAIR = 1;
+
     const HIGH_CARD = 0;
 
     const CARDS = [
@@ -64,7 +70,7 @@ class Hand
     ];
 
     /**
-     * @param array<string|int> $cards
+     * @param  array<string|int>  $cards
      */
     private function __construct(
         public readonly array $cards,

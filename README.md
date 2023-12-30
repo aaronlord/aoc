@@ -7,3 +7,4 @@
 - Day 5 [Part 1](https://github.com/aaronlord/aoc/blob/ccbc964f14ebe2bf2b1d83bd580553be46fffdd1/app/Console/Commands/Day5Command.php), [Part 2](app/Console/Commands/Day5Command.php)
 - Day 6 [Part 1](https://github.com/aaronlord/aoc/blob/f37a4a5119c4da68b4241b20140613eea9ab52d6/app/Console/Commands/Day6Command.php), [Part 2](app/Console/Commands/Day6Command.php)
 - Day 7 [Part 1](https://github.com/aaronlord/aoc/blob/22233febd1366616567350198846173c7b614ed6/app/Console/Commands/Day7Command.php), [Part 2](app/Console/Commands/Day7Command.php)
+- Day 8 [Part 1](app/Console/Commands/Day8Command.php)
