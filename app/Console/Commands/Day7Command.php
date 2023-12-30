@@ -35,6 +35,8 @@ class Day7Command extends Command
 
 namespace App\Console\Commands\Day7;
 
+use LogicException;
+
 class Hand
 {
     const FIVE_OF_A_KIND = 6;
@@ -49,16 +51,16 @@ class Hand
         'A' => 12,
         'K' => 11,
         'Q' => 10,
-        'J' => 9,
-        'T' => 8,
-        9 => 7,
-        8 => 6,
-        7 => 5,
-        6 => 4,
-        5 => 3,
-        4 => 2,
-        3 => 1,
-        2 => 0,
+        'T' => 9,
+        9 => 8,
+        8 => 7,
+        7 => 6,
+        6 => 5,
+        5 => 4,
+        4 => 3,
+        3 => 2,
+        2 => 1,
+        'J' => 0,
     ];
 
     /**
@@ -106,16 +108,19 @@ class Hand
     {
         $counts = array_count_values($this->cards);
 
+        unset($counts['J']);
+
         sort($counts);
 
         return match ($counts) {
-            [5] => self::FIVE_OF_A_KIND,
-            [1, 4] => self::FOUR_OF_A_KIND,
-            [2, 3] => self::FULL_HOUSE,
-            [1, 1, 3] => self::THREE_OF_A_KIND,
-            [1, 2, 2] => self::TWO_PAIR,
-            [1, 1, 1, 2] => self::ONE_PAIR,
-            default => self::HIGH_CARD,
+            [5], [4], [3], [2], [1], [] => self::FIVE_OF_A_KIND,
+            [1, 4], [1, 3], [1, 2], [1, 1] => self::FOUR_OF_A_KIND,
+            [2, 3], [2, 2] => self::FULL_HOUSE,
+            [1, 1, 3], [1, 1, 2], [1, 1, 1] => self::THREE_OF_A_KIND,
+            [1, 2, 2], [1, 1, 2] => self::TWO_PAIR,
+            [1, 1, 1, 2], [1, 1, 1, 1] => self::ONE_PAIR,
+            [1, 1, 1, 1, 1] => self::HIGH_CARD,
+            default => throw new LogicException('Invalid hand'),
         };
     }
 }
