@@ -6,6 +6,7 @@ use App\Console\Commands\Day8\Instructions;
 use App\Console\Commands\Day8\Node;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 
 class Day8Command extends Command
 {
@@ -26,17 +27,46 @@ class Day8Command extends Command
             ->values()
             ->keyBy(fn (Node $node) => $node->name);
 
-        $node = $nodes->get('AAA');
+        $steps = $nodes
+            ->filter(fn (Node $node) => Str::endsWith($node->name, 'A'))
+            ->map(function (Node $node) use ($nodes, $instructions): int {
+                $steps = 0;
 
-        $steps = 0;
+                do {
+                    $node = $nodes->get($node->get($instructions->get()));
 
-        do {
-            $node = $nodes->get($node->get($instructions->get()));
+                    $steps++;
+                } while (! Str::endsWith($node->name, 'Z'));
 
-            $steps++;
-        } while ($node->name != 'ZZZ');
+                return $steps;
+            })
+            ->values()
+            ->toArray();
 
-        $this->line($steps);
+        $this->line($this->leastCommonMultiple($steps));
+    }
+
+    /**
+     * @param  array<int>  $numbers
+     */
+    private function leastCommonMultiple(array $numbers): int
+    {
+        $lcm = $numbers[0];
+
+        for ($i = 1; $i < count($numbers); $i++) {
+            $lcm = ($numbers[$i] * $lcm) / $this->greatestCommonDivisor($numbers[$i], $lcm);
+        }
+
+        return $lcm;
+    }
+
+    private function greatestCommonDivisor(int $a, int $b): int
+    {
+        if ($b === 0) {
+            return $a;
+        }
+
+        return $this->greatestCommonDivisor($b, $a % $b);
     }
 }
 
