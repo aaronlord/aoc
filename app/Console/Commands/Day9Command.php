@@ -61,11 +61,13 @@ class History
     {
         $value = 0;
 
-        for ($i = count($sequence) - 1; $i >= 0; $i--) {
-            $value += end($sequence[$i]);
+        for ($i = count($sequence) - 2; $i >= 0; $i--) {
+            $value = $sequence[$i][0] - $sequence[$i + 1][0];
+
+            array_unshift($sequence[$i], $value);
         }
 
-        return $value;
+        return $sequence[0][0];
     }
 
     /**
