@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Aoc\Day1;
 
 use App\Aoc\SolutionInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 
 class Solution implements SolutionInterface
@@ -17,15 +18,12 @@ class Solution implements SolutionInterface
             [$left[], $right[]] = explode('   ', $line);
         }
 
-        sort($left);
-        sort($right);
-
-        $sum = 0;
-
-        for ($i = 0; $i < count($left); $i++) {
-            $sum += abs($left[$i] - $right[$i]);
-        }
-
-        return $sum;
+        return collect($right)
+            ->sort()
+            ->chunkWhile(static fn (string $value, int $key, Collection $chunk): bool => $value === $chunk->last())
+            ->mapWithKeys(static fn (Collection $chunk): array => [$chunk->first() => $chunk->count()])
+            ->pipe(static fn (Collection $counts): int => collect($left)
+                ->reduce(static fn (int $carry, string $value): int => $carry + $value * $counts->get($value), 0)
+            );
     }
 }
