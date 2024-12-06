@@ -16,11 +16,33 @@ class Report
 
     public function isSafe(): bool
     {
-        for ($i = 1; $i < count($this->levels); $i++) {
-            $a = (int) $this->levels[$i - 1];
-            $b = (int) $this->levels[$i];
+        if ($this->checkLevels($this->levels)) {
+            return true;
+        }
 
-            if (! $this->isCorrectlyOrdered($a, $b)) {
+        for ($i = 0; $i < count($this->levels); $i++) {
+            $levels = $this->levels;
+
+            unset($levels[$i]);
+
+            if ($this->checkLevels(array_values($levels))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<int> $levels
+     */
+    protected function checkLevels(array $levels): bool
+    {
+        for ($i = 1; $i < count($levels); $i++) {
+            $a = (int) $levels[$i - 1];
+            $b = (int) $levels[$i];
+
+            if (! $this->isCorrectlyOrdered($a, $b, $this->shouldBeAscending($levels))) {
                 return false;
             }
 
@@ -34,17 +56,20 @@ class Report
         return true;
     }
 
-    protected function isCorrectlyOrdered(int $a, int $b): bool
+    protected function isCorrectlyOrdered(int $a, int $b, bool $shouldBeAscending): bool
     {
-        if ($this->shouldBeAscending()) {
+        if ($shouldBeAscending) {
             return $a < $b;
         }
 
         return $a > $b;
     }
 
-    protected function shouldBeAscending(): bool
+    /**
+     * @param array<int> $levels
+     */
+    protected function shouldBeAscending(array $levels): bool
     {
-        return $this->levels[0] < $this->levels[1];
+        return $levels[0] < $levels[1];
     }
 }
